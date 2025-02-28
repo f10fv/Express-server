@@ -9,20 +9,20 @@ const prisma = new PrismaClient();
 
 app.use(express.json());
 
-// const authenticate = async (req, res, next) => {
-//   const credentials = auth(req);
-//   if (!credentials) return res.status(401).json({ error: "Unauthorized" });
+const authenticate = async (req, res, next) => {
+  const credentials = auth(req);
+  if (!credentials) return res.status(401).json({ error: "Unauthorized" });
 
-//   const user = await prisma.user.findUnique({
-//     where: { username: credentials.name },
-//   });
+  const user = await prisma.user.findUnique({
+    where: { username: credentials.name },
+  });
 
-//   if (!user || !(await bcrypt.compare(credentials.pass, user.password))) {
-//     return res.status(401).json({ error: "Invalid credentials" });
-//   }
+  if (!user || !(await bcrypt.compare(credentials.pass, user.password))) {
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
 
-//   next();
-// };
+  next();
+};
 
 app.get("/", (req, res) => {
   res.send("Welcome to my Express API!");
@@ -33,7 +33,7 @@ app.get("/health", (req, res) => {
 });
 
 
-app.get("/users", async (req, res) => {
+app.get("/users", authenticate, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, username: true, password: false } });
   res.json(users);
 });
@@ -66,5 +66,5 @@ app.post("/users", async (req, res) => {
 
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
