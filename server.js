@@ -33,7 +33,7 @@ app.get("/health", (req, res) => {
 });
 
 
-app.get("/users", authenticate, async (req, res) => {
+app.get("/users", async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, username: true, password: false } });
   res.json(users);
 });
@@ -65,4 +65,6 @@ app.post("/users", async (req, res) => {
 });
 
 
-app.listen(8080, () => console.log("Server running on port 8080")); 
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+
