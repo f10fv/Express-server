@@ -32,6 +32,12 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK" });
 });
 
+app.get("/debug-users", async (req, res) => {
+  const users = await prisma.user.findMany();
+  res.json(users);
+});
+
+
 app.get("/users", authenticate, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, username: true, password: false } });
   res.json(users);
@@ -41,6 +47,16 @@ app.post("/users", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: "Missing fields" });
 
+  const existingUser = await prisma.user.findUnique({
+    where: { username },
+  });
+
+  console.log("Existing User Found:", existingUser);
+
+  if (existingUser) {
+    return res.status(400).json({ error: "Username already taken, choose another" });
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const newUser = await prisma.user.create({
@@ -48,9 +64,11 @@ app.post("/users", async (req, res) => {
     });
     res.status(201).json({ id: newUser.id, username: newUser.username });
   } catch (error) {
-    res.status(400).json({ error: "Username already exists" });
+    console.error("Database Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
