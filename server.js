@@ -24,6 +24,14 @@ const authenticate = async (req, res, next) => {
   next();
 };
 
+app.get("/", (req, res) => {
+  res.send("Welcome to my Express API!");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "OK" });
+});
+
 app.get("/users", authenticate, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, username: true, password: false } });
   res.json(users);
