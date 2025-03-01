@@ -33,7 +33,7 @@ app.get("/health", (req, res) => {
 });
 
 
-app.get("/users", async (req, res) => {
+app.get("/users", authenticate, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, username: true, password: false } });
   res.json(users);
 });
