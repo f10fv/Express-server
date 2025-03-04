@@ -31,6 +31,11 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK" });
 });
 
+app.get("/debug-users", async (req, res) => {
+  const users = await prisma.user.findMany();
+  res.json(users);
+});
+
 
 app.get("/users", authenticate, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, username: true} });
