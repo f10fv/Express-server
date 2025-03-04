@@ -8,15 +8,39 @@ const prisma = new PrismaClient();
 
 app.use(express.json());
 
+// const authenticate = async (req, res, next) => {
+//   const credentials = auth(req);
+//   if (!credentials) return res.status(401).json({ error: "Unauthorized" });
+
+//   const user = await prisma.user.findUnique({
+//     where: { username: credentials.name },
+//   });
+
+//   if (!user || !(await bcrypt.compare(credentials.pass, user.password))) {
+//     return res.status(401).json({ error: "Invalid credentials" });
+//   }
+
+//   next();
+// };
+
 const authenticate = async (req, res, next) => {
   const credentials = auth(req);
   if (!credentials) return res.status(401).json({ error: "Unauthorized" });
+
+  console.log("Received Credentials:", credentials); 
 
   const user = await prisma.user.findUnique({
     where: { username: credentials.name },
   });
 
-  if (!user || !(await bcrypt.compare(credentials.pass, user.password))) {
+  console.log("Existing User Found:", user); 
+
+  if (!user) {
+    return res.status(401).json({ error: "User not found" });
+  }
+
+  const passwordMatch = await bcrypt.compare(credentials.pass, user.password);
+  if (!passwordMatch) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
@@ -29,11 +53,6 @@ app.get("/", (req, res) => {
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK" });
-});
-
-app.get("/debug-users", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
 });
 
 
