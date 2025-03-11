@@ -40,6 +40,16 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK" });
 });
 
+app.get("/test-db", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Database connection error", details: error.message });
+  }
+});
+
+
 
 app.get("/users", authenticate, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, username: true} });
